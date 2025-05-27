@@ -5,19 +5,37 @@ Datasheet: http://www.adafruit.com/datasheets/ina219.pdf
 
 ## About
 
-INA219 is a current, voltage and power measurement module.
+INA219 is a current, voltage and power measurement module. This TypeScript
+module wraps the [LibDriver INA219](https://github.com/libdriver/ina219) driver.
 
 
 ## Usage
 
-See the `./src/example.ts`.
+tbd
 
 
 ## Running tests
 
-To install dependencies run `npm i`. Tests are run with command
-`OPENI2C_MOCKED=true I2C_BUS=1 I2C_ADDRESS=addr npm test`. Bus number defaults
-to bus `5` and address `0x40`. Leave the `OPENI2C_MOCKED` environment variable
-out if you wish to test with real device. You can also scan devices on a bus
-with `I2C_BUS=1 npm run scan`.
+tbd
 
+
+## Development
+
+
+### Building
+
+Building the wrapper module is done by using one of the npm build scripts
+defined in the `package.json` file:
+
+```bash
+npm run bear-build
+```
+
+or
+```bash
+npm run build
+```
+
+[Bear](https://github.com/rizsotto/Bear) is a tool which generates the
+`compile_commands.json`-file. I did not get clangd completions to work without
+it in this node-gyp project.

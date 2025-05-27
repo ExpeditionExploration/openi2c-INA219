@@ -8,8 +8,11 @@
   },
   "scripts": {
     "test": "jest --runInBand",
-    "scan": "node ./dist/src/scan.js",
-    "build": "tsc"
+    "configure": "node-gyp configure",
+    "build": "node-gyp build && tsc",
+    "rebuild": "node-gyp rebuild && tsc",
+    "bear-build": "bear -- node-gyp build && tsc",
+    "bear-rebuild": "bear -- node-gyp rebuild && tsc"
   },
   "keywords": [
     "INA219"
@@ -18,15 +21,11 @@
   "license": "MIT",
   "devDependencies": {
     "@types/debug": "^4.1.12",
-    "@types/i2c-bus": "^5.1.2",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.15.18",
     "jest": "^29.7.0",
+    "node-gyp": "^11.2.0",
     "ts-jest": "^29.3.2",
     "typescript": "^5.8.3"
-  },
-  "dependencies": {
-    "debug": "^4.4.1",
-    "i2c-bus": "^5.2.3"
   }
 }
