@@ -117,15 +117,16 @@ export enum Mode {
 
 export type INA219Handle = {
     i2cAddress: I2CAddress;
-    i2cInit: () => Promise<void>;
-    i2cDeinit: () => Promise<void>;
-    i2cRead: (addr: I2CAddress, reg: number, len: number) => Promise<Buffer>;
-    i2cWrite: (addr: I2CAddress, reg: number, data: Buffer) => Promise<void>;
-    delay: (ms: number) => Promise<void>;
-    debugPrint: (msg: string) => Promise<void>;
+//    i2cInit: () => Promise<void>;
+//    i2cDeinit: () => Promise<void>;
+//    i2cRead: (addr: I2CAddress, reg: number, len: number) => Promise<Buffer>;
+//    i2cWrite: (addr: I2CAddress, reg: number, data: Buffer) => Promise<void>;
+//    delay: (ms: number) => Promise<void>;
+//    debugPrint: (msg: string) => Promise<void>;
     r: number;
     current_lsb: number;
     inited: boolean;
+
 }
 
 export type INA219Info = {
@@ -150,7 +151,10 @@ export type INA219Info = {
 }
 
 export type INA219 = {
-
+    basicInit: (
+        addr: I2CAddress, r: number, voltageRange: BusVoltageRange,
+        busAdcMode: ADCMode, shuntAdcMode: ADCMode, pgaGain: PGAGain,
+    ) => Promise<INA219Handle>,
 }
 
 

@@ -1,30 +1,24 @@
-// import { INA219, Config, ShuntVoltage, BusVoltage } from '..';
-// import { sleep } from './utils';
 
-// const BUS = parseInt(process.env.I2C_BUS ?? '5');
+import { ADCMode, BusVoltageRange, I2CAddress, ina219, PGAGain } from ".";
 
-// /**
-//  * This example shows how to use the INA219 class to read shunt voltage,
-//  * bus voltage, current, power, and calibration.
-//  */
+async function main() {
+    try {
+        // Initialize the INA219 sensor
+        const sensor = await ina219.basicInit(
+            I2CAddress.ADDRESS_0,
+            0.5,
+            BusVoltageRange.VBUS_RANGE_32V,
+            ADCMode.ADC_MODE_12_BIT_128_SAMPLES,
+            ADCMode.ADC_MODE_12_BIT_128_SAMPLES,
+            PGAGain.GAIN_1_DIV_8
+        )
+    } catch (error) {
+        console.error("Error initializing INA219:", error);
+    }
+}
 
-// async function main() {
-//     const ina219 = new INA219(BUS);
-//     await ina219.init();
-
-//     let iter: number = 0;
-//     while (true) {
-//         console.log(`Measurement #${++iter}:`);
-
-//         const shunt = await ina219.readShuntVoltage();
-//         const bus = await ina219.readBusVoltage();
-//         const power = await ina219.readPower();
-//         const current = await ina219.readCurrent();
-//         const calibration = await ina219.readCalibration();
-
-//         console.log(`Shunt / mV: ${shunt}, Bus / mV: ${bus}, Current / mA: ${current}, Power / mW: ${power}`);
-
-//         await sleep(300);
-//     }
-// }
-// main();
+main().then(() => {
+    console.log("INA219 initialized successfully.");
+}).catch((error) => {
+    console.error("Failed to initialize INA219:", error);
+});

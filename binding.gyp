@@ -3,13 +3,15 @@
     {
       "target_name": "ina219_native",
       "sources": [ 
+          "src/c-src/errors.c",
           "src/c-src/extension.c",
           "src/c-src/fn-bindings.c",
+          "src/c-src/interface.c",
           "src/c-src/structs.c",
           "src/ina219/src/driver_ina219.c"
       ],
       "include_dirs": [
-        "/usr/local/include/node/",
+        # "/usr/local/include/",  # Uncomment if needed 
         "src/c-include/",
         "src/ina219/src/"
       ],

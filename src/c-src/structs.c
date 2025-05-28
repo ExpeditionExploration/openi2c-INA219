@@ -1,7 +1,8 @@
 #include <node/node_api.h>
-#include <stdio.h>
-#include <string.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "driver_ina219.h"
 #include "errors.h"
@@ -41,8 +42,8 @@ napi_value ina219_info_to_js(napi_env env, const ina219_info_t *info) {
                                       jsSupplyVoltageMin);
     status |= napi_set_named_property(env, jsObject, "supplyVoltageMaxV",
                                       jsSupplyVoltageMax);
-    status |=
-        napi_set_named_property(env, jsObject, "maxCurrentMilliA", jsMaxCurrent);
+    status |= napi_set_named_property(env, jsObject, "maxCurrentMilliA",
+                                      jsMaxCurrent);
 
     napi_value jsTemperatureMin, jsTemperatureMax, jsDriverVersion;
     status |= napi_create_double(env, info->temperature_min, &jsTemperatureMin);
@@ -65,3 +66,42 @@ napi_value ina219_info_to_js(napi_env env, const ina219_info_t *info) {
     return jsObject;
 }
 
+static void finalize_handle(napi_env env, void *data, void *hint) {
+    ina219_handle_t *handle = (ina219_handle_t *)data;
+    if (handle != NULL) {
+        // Deinitialize the handle if necessary
+        ina219_deinit(handle);
+        free(handle);
+    }
+}
+/**
+ * @brief Make a Buffer object from an ina219_handle_t pointer.
+ *
+ * - From calling this function, the JavaScript side will garbage collect, free,
+ * and deinit the ina219_handle_t pointer when the Buffer is no longer needed.
+ * - This function assumes the `handle` to have been allocated using `malloc()`.
+ *
+ * @return A Buffer object convertible to `ina219_handle_t` in C.
+ *
+ * In case of an error, it throws `error creating napi value` error and returns
+ * `NULL`.
+ */
+napi_value ina219_handle_t_to_js(napi_env env, ina219_handle_t *handle) {
+    napi_value jsHandle;
+    napi_status status = napi_create_object(env, &jsHandle);
+    if (status != napi_ok) {
+        napi_throw_error(env, ERROR_CREATING_NAPI_VALUE,
+                         "fn: mk_ina219_handle_t");
+        return NULL;
+    }
+
+    status = napi_create_external_buffer(env, sizeof(*handle), handle,
+                                         finalize_handle, NULL, &jsHandle);
+    if (status != napi_ok) {
+        napi_throw_error(env, ERROR_CREATING_NAPI_VALUE,
+                         "fn: mk_ina219_handle_t");
+        return NULL;
+    }
+
+    return jsHandle;
+}
