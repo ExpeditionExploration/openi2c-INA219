@@ -14,6 +14,20 @@ async function main() {
             ADCMode.ADC_MODE_12_BIT_128_SAMPLES,
             PGAGain.GAIN_1_DIV_8
         )
+        console.log("INA219 initialized successfully.");
+        console.log("Sensor information:");
+        const info = await ina219.getSensorInfo();
+        console.log(`chipName: ${info.chipName}`);
+        console.log(`manufacturerName: ${info.manufacturerName}`);
+        console.log(`interface: ${info.interface}`);
+        console.log(`supplyVoltageMinV: ${info.supplyVoltageMinV} V`);
+        console.log(`supplyVoltageMaxV: ${info.supplyVoltageMaxV} V`);
+        console.log(`maxCurrentMilliA: ${info.maxCurrentMilliA} mA`);
+        console.log(`temperatureMin: ${info.temperatureMin} °C`);
+        console.log(`temperatureMax: ${info.temperatureMax} °C`);
+        console.log(`driverVersion: ${info.driverVersion}`);
+        console.log("-------------------------------");
+
         while (true) {
             const shuntVoltage = await ina219.getShuntVoltage();
             const busVoltage = await ina219.getBusVoltage();
@@ -24,6 +38,8 @@ async function main() {
             console.log(`Power: ${ina219.getPower()} mW`);
             await sleep(1000); // Wait for 1 second before the next reading
             console.log("-------------------------------");
+            // await ina219.softReset();
+            // await sleep(20);
         }
 
     } catch (error) {

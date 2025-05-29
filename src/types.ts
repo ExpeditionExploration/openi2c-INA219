@@ -3,37 +3,37 @@
  * INA219 I2C address enumeration.
  */
 export enum I2CAddress {
-    /** A0 = GND, A1 = GND */
+    /** A0 = GND, A1 = GND ; 0x40 */
     ADDRESS_0 = (0x40 << 1),
-    /** A0 = VS+, A1 = GND */
+    /** A0 = VS+, A1 = GND ; 0x41 */
     ADDRESS_1 = (0x41 << 1),
-    /** A0 = SDA, A1 = GND */
+    /** A0 = SDA, A1 = GND ; 0x42 */
     ADDRESS_2 = (0x42 << 1),
-    /** A0 = SCL, A1 = GND */
+    /** A0 = SCL, A1 = GND ; 0x43 */
     ADDRESS_3 = (0x43 << 1),
-    /** A0 = GND, A1 = VS+ */
+    /** A0 = GND, A1 = VS+ ; 0x44 */
     ADDRESS_4 = (0x44 << 1),
-    /** A0 = VS+, A1 = VS+ */
+    /** A0 = VS+, A1 = VS+ ; 0x45 */
     ADDRESS_5 = (0x45 << 1),
-    /** A0 = SDA, A1 = VS+ */
+    /** A0 = SDA, A1 = VS+ ; 0x46 */
     ADDRESS_6 = (0x46 << 1),
-    /** A0 = SCL, A1 = VS+ */
+    /** A0 = SCL, A1 = VS+ ; 0x47 */
     ADDRESS_7 = (0x47 << 1),
-    /** A0 = GND, A1 = SDA */
+    /** A0 = GND, A1 = SDA ; 0x48 */
     ADDRESS_8 = (0x48 << 1),
-    /** A0 = VS+, A1 = SDA */
+    /** A0 = VS+, A1 = SDA ; 0x49 */
     ADDRESS_9 = (0x49 << 1),
-    /** A0 = SDA, A1 = SDA */
+    /** A0 = SDA, A1 = SDA ; 0x4A */
     ADDRESS_A = (0x4A << 1),
-    /** A0 = SCL, A1 = SDA */
+    /** A0 = SCL, A1 = SDA ; 0x4B */
     ADDRESS_B = (0x4B << 1),
-    /** A0 = GND, A1 = SCL */
+    /** A0 = GND, A1 = SCL ; 0x4C */
     ADDRESS_C = (0x4C << 1),
-    /** A0 = VS+, A1 = SCL */
+    /** A0 = VS+, A1 = SCL ; 0x4D */
     ADDRESS_D = (0x4D << 1),
-    /** A0 = SDA, A1 = SCL */
+    /** A0 = SDA, A1 = SCL ; 0x4E */
     ADDRESS_E = (0x4E << 1),
-    /**< A0 = SCL, A1 = SCL */
+    /**< A0 = SCL, A1 = SCL ; 0x4F */
     ADDRESS_F = (0x4F << 1)
 }
 
@@ -115,25 +115,14 @@ export enum Mode {
     SHUNT_BUS_VOLTAGE_CONTINUOUS = 0x7,
 }
 
-export type INA219Handle = {
-    i2cAddress: I2CAddress;
-//    i2cInit: () => Promise<void>;
-//    i2cDeinit: () => Promise<void>;
-//    i2cRead: (addr: I2CAddress, reg: number, len: number) => Promise<Buffer>;
-//    i2cWrite: (addr: I2CAddress, reg: number, data: Buffer) => Promise<void>;
-//    delay: (ms: number) => Promise<void>;
-//    debugPrint: (msg: string) => Promise<void>;
-    r: number;
-    current_lsb: number;
-    inited: boolean;
-
-}
-
+/**
+ * INA219 sensor information.
+ */
 export type INA219Info = {
     /** chip name */
     chipName: string;         
     /** manufacturer name */       
-    manufacturerName: string;   
+    manufacturerName: string; 
     /** chip interface name */     
     interface: string;     
     /** chip min supply voltage */            
@@ -169,6 +158,12 @@ export type INA219 = {
 
     /// Return the power in milliwatts.
     getPower: () => Promise<number>,
+
+    /// Do a software reset of the INA219 sensor.
+    softReset: () => Promise<void>,
+
+    /// Get the sensor information.
+    getSensorInfo: () => Promise<INA219Info>,
 }
 
 

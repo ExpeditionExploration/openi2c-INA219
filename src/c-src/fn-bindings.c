@@ -323,3 +323,36 @@ napi_value ina219_read_power_wrapper(napi_env env, napi_callback_info info) {
 
     return jsMW;
 }
+
+napi_value ina219_soft_reset_wrapper(napi_env env, napi_callback_info info) {
+    size_t argc = 0; // No arguments expected
+    napi_get_cb_info(env, info, &argc, NULL, NULL, NULL);
+    if (argc != 0) {
+        napi_throw_error(env, WRONG_NUMBER_OF_ARGUMENTS,
+                         "Check number of arguments for fn:"
+                         " ina219_soft_reset_wrapper(..)");
+        return NULL;
+    }
+    uint8_t res = ina219_soft_reset(&ina219_iic_handle);
+    switch (res) {
+        case 0:
+            // Success
+            break;
+        case 1:
+            napi_throw_error(env, ERROR_RESETTING_DEVICE, "Soft reset failed");
+            return NULL;
+        case 2:
+            napi_throw_error(env, ERROR_RESETTING_DEVICE, "Handle is NULL");
+            return NULL;
+        case 3:
+            napi_throw_error(env, ERROR_RESETTING_DEVICE,
+                             "Handle is not initialized");
+            return NULL;
+        default:
+            napi_throw_error(env, ERROR_RESETTING_DEVICE,
+                             "Unexpected error during soft reset");
+            return NULL;
+    }
+
+    return NULL; // No return value needed for soft reset
+}

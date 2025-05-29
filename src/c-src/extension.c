@@ -9,7 +9,7 @@ napi_value Init(napi_env env, napi_value exports) {
     napi_status status;
 
     napi_create_function(env, NULL, 0, ina219_info_wrapper, NULL, &info_fn);
-    napi_set_named_property(env, exports, "INA219Info", info_fn);
+    napi_set_named_property(env, exports, "getSensorInfo", info_fn);
 
     // Create the basic_init function
     status =
@@ -44,6 +44,12 @@ napi_value Init(napi_env env, napi_value exports) {
     status |= napi_create_function(env, NULL, 0, ina219_read_power_wrapper,
                                    NULL, &read_power_fn);
     status |= napi_set_named_property(env, exports, "getPower", read_power_fn);
+
+    // Create softReset function
+    napi_value soft_reset_fn;
+    status |= napi_create_function(env, NULL, 0, ina219_soft_reset_wrapper,
+                                   NULL, &soft_reset_fn);
+    status |= napi_set_named_property(env, exports, "softReset", soft_reset_fn);
 
     // Check if any of the NAPI calls failed
     if (status != napi_ok) {

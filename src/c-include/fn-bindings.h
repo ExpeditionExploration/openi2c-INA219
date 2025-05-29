@@ -44,4 +44,13 @@ napi_value ina219_read_current_wrapper(napi_env env, napi_callback_info info);
  */
 napi_value ina219_read_power_wrapper(napi_env env, napi_callback_info info);
 
+/**
+ * Soft reset the INA219 sensor.
+ *
+ * This function performs a soft reset on the INA219 sensor.
+ * It assumes that the INA219 has been initialized. Returns nothing and
+ * throws an error if the reset fails.
+ */
+napi_value ina219_soft_reset_wrapper(napi_env env, napi_callback_info info);
+
 #endif

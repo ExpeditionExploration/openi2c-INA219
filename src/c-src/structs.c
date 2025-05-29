@@ -36,7 +36,10 @@ napi_value ina219_info_to_js(napi_env env, const ina219_info_t *info) {
                                  &jsSupplyVoltageMin);
     status |= napi_create_double(env, info->supply_voltage_max_v,
                                  &jsSupplyVoltageMax);
-    status |= napi_create_double(env, info->max_current_ma, &jsMaxCurrent);
+    // The driver actually defines this as amps but names the field as
+    // milliAmps. Thus, multiply by 1000 to convert to mA.
+    status |=
+        napi_create_double(env, info->max_current_ma * 1000, &jsMaxCurrent);
 
     status |= napi_set_named_property(env, jsObject, "supplyVoltageMinV",
                                       jsSupplyVoltageMin);
