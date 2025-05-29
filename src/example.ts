@@ -8,7 +8,7 @@ async function main() {
         await ina219.basicInit(
             I2CAddress.ADDRESS_0,
             "/dev/i2c-1",
-            0.5,
+            0.1,
             BusVoltageRange.VBUS_RANGE_32V,
             ADCMode.ADC_MODE_12_BIT_128_SAMPLES,
             ADCMode.ADC_MODE_12_BIT_128_SAMPLES,
@@ -27,6 +27,20 @@ async function main() {
         console.log(`temperatureMax: ${info.temperatureMax} °C`);
         console.log(`driverVersion: ${info.driverVersion}`);
         console.log("-------------------------------");
+        console.log("Reset and re-initialize the INA219 sensor.");
+        await ina219.softReset();
+        await sleep(20); // Wait for 20 ms after reset
+        await ina219.basicInit(
+            I2CAddress.ADDRESS_0,
+            "/dev/i2c-1",
+            0.1,
+            BusVoltageRange.VBUS_RANGE_32V,
+            ADCMode.ADC_MODE_12_BIT_128_SAMPLES,
+            ADCMode.ADC_MODE_12_BIT_128_SAMPLES,
+            PGAGain.GAIN_1_DIV_8
+        );
+        console.log("INA219 re-initialized successfully.");
+        console.log("-------------------------------");
 
         while (true) {
             const shuntVoltage = await ina219.getShuntVoltage();
@@ -38,8 +52,6 @@ async function main() {
             console.log(`Power: ${ina219.getPower()} mW`);
             await sleep(1000); // Wait for 1 second before the next reading
             console.log("-------------------------------");
-            // await ina219.softReset();
-            // await sleep(20);
         }
 
     } catch (error) {
@@ -47,8 +59,4 @@ async function main() {
     }
 }
 
-main().then(() => {
-    console.log("INA219 initialized successfully.");
-}).catch((error) => {
-    console.error("Failed to initialize INA219:", error);
-});
+main()
