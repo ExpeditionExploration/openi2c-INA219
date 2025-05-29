@@ -10,6 +10,8 @@
 #include "js_native_api_types.h"
 #include "structs.h"
 
+static ina219_handle_t ina219_iic_handle;
+
 napi_value ina219_info_wrapper(napi_env env, napi_callback_info info) {
     size_t argc = 0; // No arguments expected
     napi_get_cb_info(env, info, &argc, NULL, NULL, NULL);
@@ -86,137 +88,233 @@ napi_value basic_init(napi_env env, napi_callback_info info) {
         return NULL;
     }
 
-    ina219_handle_t* handle = malloc(sizeof(ina219_handle_t));
-
-    DRIVER_INA219_LINK_INIT(handle, ina219_handle_t);
-    DRIVER_INA219_LINK_IIC_INIT(handle, ina219_interface_iic_init);
-    DRIVER_INA219_LINK_IIC_DEINIT(handle, ina219_interface_iic_deinit);
-    DRIVER_INA219_LINK_IIC_READ(handle, ina219_interface_iic_read);
-    DRIVER_INA219_LINK_IIC_WRITE(handle, ina219_interface_iic_write);
-    DRIVER_INA219_LINK_DELAY_MS(handle, ina219_interface_delay_ms);
-    DRIVER_INA219_LINK_DEBUG_PRINT(handle, ina219_interface_debug_print);
+    DRIVER_INA219_LINK_INIT(&ina219_iic_handle, ina219_handle_t);
+    DRIVER_INA219_LINK_IIC_INIT(&ina219_iic_handle, ina219_interface_iic_init);
+    DRIVER_INA219_LINK_IIC_DEINIT(&ina219_iic_handle,
+                                  ina219_interface_iic_deinit);
+    DRIVER_INA219_LINK_IIC_READ(&ina219_iic_handle, ina219_interface_iic_read);
+    DRIVER_INA219_LINK_IIC_WRITE(&ina219_iic_handle,
+                                 ina219_interface_iic_write);
+    DRIVER_INA219_LINK_DELAY_MS(&ina219_iic_handle, ina219_interface_delay_ms);
+    DRIVER_INA219_LINK_DEBUG_PRINT(&ina219_iic_handle,
+                                   ina219_interface_debug_print);
 
     /* set addr */
     int res;
-    res = ina219_set_addr_pin(handle, addr);
+    res = ina219_set_addr_pin(&ina219_iic_handle, addr);
     if (res != 0) {
         ina219_interface_debug_print("ina219: set addr pin failed.\n");
-        free(handle);
         napi_throw_error(env, INIT_ERROR, "Failed to set i2c address");
         return NULL;
     }
 
     /* set the r */
-    res = ina219_set_resistance(handle, r);
+    res = ina219_set_resistance(&ina219_iic_handle, r);
     if (res != 0) {
         ina219_interface_debug_print("ina219: set resistance failed.\n");
-        free(handle);
         napi_throw_error(env, INIT_ERROR, "Failed to set resistance value");
         return NULL;
     }
 
     /* init */
-    res = ina219_init(handle);
+    res = ina219_init(&ina219_iic_handle);
     if (res != 0) {
         ina219_interface_debug_print("ina219: init failed.\n");
-        free(handle);
         napi_throw_error(env, INIT_ERROR, "Failed to initialize INA219");
         return NULL;
     }
 
     /* set bus voltage range */
-    res = ina219_set_bus_voltage_range(handle, voltage_range);
+    res = ina219_set_bus_voltage_range(&ina219_iic_handle, voltage_range);
     if (res != 0) {
         ina219_interface_debug_print("ina219: set bus voltage range failed.\n");
-        ina219_deinit(handle);
-        free(handle);
+        ina219_deinit(&ina219_iic_handle);
         napi_throw_error(env, INIT_ERROR, "Failed to set bus voltage range");
         return NULL;
     }
 
     /* set bus voltage adc mode */
-    res = ina219_set_bus_voltage_adc_mode(handle, bus_adc_mode);
+    res = ina219_set_bus_voltage_adc_mode(&ina219_iic_handle, bus_adc_mode);
     if (res != 0) {
         ina219_interface_debug_print(
             "ina219: set bus voltage adc mode failed.\n");
-        ina219_deinit(handle);
-        free(handle);
+        ina219_deinit(&ina219_iic_handle);
         napi_throw_error(env, INIT_ERROR, "Failed to set bus voltage ADC mode");
         return NULL;
     }
 
     /* set shunt voltage adc mode */
-    res = ina219_set_shunt_voltage_adc_mode(handle, shunt_adc_mode);
+    res = ina219_set_shunt_voltage_adc_mode(&ina219_iic_handle, shunt_adc_mode);
     if (res != 0) {
         ina219_interface_debug_print(
             "ina219: set shunt voltage adc mode failed.\n");
-        ina219_deinit(handle);
-        free(handle);
+        ina219_deinit(&ina219_iic_handle);
         napi_throw_error(env, INIT_ERROR,
                          "Failed to set shunt voltage ADC mode");
         return NULL;
     }
 
     /* set shunt&bus voltage continuous */
-    res = ina219_set_mode(handle, INA219_MODE_SHUNT_BUS_VOLTAGE_CONTINUOUS);
+    res = ina219_set_mode(&ina219_iic_handle,
+                          INA219_MODE_SHUNT_BUS_VOLTAGE_CONTINUOUS);
     if (res != 0) {
         ina219_interface_debug_print("ina219: set mode failed.\n");
-        ina219_deinit(handle);
-        free(handle);
+        ina219_deinit(&ina219_iic_handle);
         napi_throw_error(env, INIT_ERROR, "Failed to set INA219 mode");
         return NULL;
     }
 
     /* set pga */
-    res = ina219_set_pga(handle, pga);
+    res = ina219_set_pga(&ina219_iic_handle, pga);
     if (res != 0) {
         ina219_interface_debug_print("ina219: set pga failed.\n");
-        ina219_deinit(handle);
-        free(handle);
+        ina219_deinit(&ina219_iic_handle);
         napi_throw_error(env, INIT_ERROR, "Failed to set PGA");
         return NULL;
     }
 
     /* calculate calibration */
     uint16_t calibration;
-    res = ina219_calculate_calibration(handle, &calibration);
+    res = ina219_calculate_calibration(&ina219_iic_handle, &calibration);
     if (res != 0) {
         ina219_interface_debug_print("ina219: calculate calibration failed.\n");
-        ina219_deinit(handle);
-        free(handle);
+        ina219_deinit(&ina219_iic_handle);
         napi_throw_error(env, INIT_ERROR, "Failed to calculate calibration");
         return NULL;
     }
 
     /* set calibration */
-    res = ina219_set_calibration(handle, calibration);
+    res = ina219_set_calibration(&ina219_iic_handle, calibration);
     if (res != 0) {
         ina219_interface_debug_print("ina219: set calibration failed.\n");
-        ina219_deinit(handle);
-        free(handle);
+        ina219_deinit(&ina219_iic_handle);
         napi_throw_error(env, INIT_ERROR, "Failed to set calibration");
         return NULL;
     }
 
-    // Create a JavaScript object to return the handle
-    napi_value jsHandleObject, handle_buffer;
-    handle_buffer = ina219_handle_t_to_js(env, handle);
-    if (handle_buffer == NULL) {
-        ina219_interface_debug_print("ina219: handle to js failed.\n");
-        napi_throw_error(env, ERROR_CREATING_NAPI_VALUE,
-                         "Failed to create handle buffer");
+    return NULL;
+}
+
+napi_value ina219_read_shunt_voltage_wrapper(napi_env env,
+                                             napi_callback_info info) {
+    size_t argc = 0; // No arguments expected
+    napi_get_cb_info(env, info, &argc, NULL, NULL, NULL);
+
+    if (argc != 0) {
+        napi_throw_error(env, WRONG_NUMBER_OF_ARGUMENTS,
+                         "Check number of arguments for fn:"
+                         " ina219_read_shunt_voltage_wrapper(..)");
         return NULL;
     }
 
-    // Set the handle in the JavaScript context
-    status = napi_create_object(env, &jsHandleObject);
-    status |= napi_set_named_property(env, this, "handle", jsHandleObject);
-    if (status != napi_ok) {
-        ina219_interface_debug_print(
-            "ina219: creating handle object failed.\n");
-        napi_throw_error(env, ERROR_CREATING_NAPI_VALUE,
-                         "Failed to create handle object");
+    int16_t raw;
+    float mV;
+    uint8_t res = ina219_read_shunt_voltage(&ina219_iic_handle, &raw, &mV);
+    if (res != 0) {
+        napi_throw_error(env, INIT_ERROR, "Failed to read shunt voltage");
         return NULL;
     }
-    return jsHandleObject;
+
+    napi_value jsMV;
+    napi_status status = napi_create_double(env, mV, &jsMV);
+    if (status != napi_ok) {
+        napi_throw_error(env, ERROR_CREATING_NAPI_VALUE,
+                         "Failed to create NAPI value for shunt voltage");
+        return NULL;
+    }
+
+    return jsMV;
+}
+
+napi_value ina219_read_bus_voltage_wrapper(napi_env env,
+                                             napi_callback_info info) {
+    size_t argc = 0; // No arguments expected
+    napi_get_cb_info(env, info, &argc, NULL, NULL, NULL);
+
+    if (argc != 0) {
+        napi_throw_error(env, WRONG_NUMBER_OF_ARGUMENTS,
+                         "Check number of arguments for fn:"
+                         " ina219_read_bus_voltage_wrapper(..)");
+        return NULL;
+    }
+
+    uint16_t raw;
+    float mV;
+    uint8_t res = ina219_read_bus_voltage(&ina219_iic_handle, &raw, &mV);
+    if (res != 0) {
+        napi_throw_error(env, INIT_ERROR, "Failed to read bus voltage");
+        return NULL;
+    }
+
+    napi_value jsMV;
+    napi_status status = napi_create_double(env, mV, &jsMV);
+    if (status != napi_ok) {
+        napi_throw_error(env, ERROR_CREATING_NAPI_VALUE,
+                         "Failed to create NAPI value for bus voltage");
+        return NULL;
+    }
+
+    return jsMV;
+}
+
+napi_value ina219_read_current_wrapper(napi_env env,
+                                              napi_callback_info info) {
+    size_t argc = 0; // No arguments expected
+    napi_get_cb_info(env, info, &argc, NULL, NULL, NULL);
+
+    if (argc != 0) {
+        napi_throw_error(env, WRONG_NUMBER_OF_ARGUMENTS,
+                         "Check number of arguments for fn:"
+                         " ina219_read_current_wrapper(..)");
+        return NULL;
+    }
+
+    int16_t raw;
+    float mA;
+    uint8_t res = ina219_read_current(&ina219_iic_handle, &raw, &mA);
+    if (res != 0) {
+        napi_throw_error(env, INIT_ERROR, "Failed to read current");
+        return NULL;
+    }
+
+    napi_value jsMA;
+    napi_status status = napi_create_double(env, mA, &jsMA);
+    if (status != napi_ok) {
+        napi_throw_error(env, ERROR_CREATING_NAPI_VALUE,
+                         "Failed to create NAPI value for current");
+        return NULL;
+    }
+
+    return jsMA;
+}
+
+napi_value ina219_read_power_wrapper(napi_env env,
+                                              napi_callback_info info) {
+    size_t argc = 0; // No arguments expected
+    napi_get_cb_info(env, info, &argc, NULL, NULL, NULL);
+
+    if (argc != 0) {
+        napi_throw_error(env, WRONG_NUMBER_OF_ARGUMENTS,
+                         "Check number of arguments for fn:"
+                         " ina219_read_power_wrapper(..)");
+        return NULL;
+    }
+
+    uint16_t raw;
+    float mW;
+    uint8_t res = ina219_read_power(&ina219_iic_handle, &raw, &mW);
+    if (res != 0) {
+        napi_throw_error(env, INIT_ERROR, "Failed to read power");
+        return NULL;
+    }
+
+    napi_value jsMW;
+    napi_status status = napi_create_double(env, mW, &jsMW);
+    if (status != napi_ok) {
+        napi_throw_error(env, ERROR_CREATING_NAPI_VALUE,
+                         "Failed to create NAPI value for power");
+        return NULL;
+    }
+
+    return jsMW;
 }

@@ -8,19 +8,49 @@ napi_value Init(napi_env env, napi_value exports) {
     napi_value info_fn, basic_init_fn;
     napi_status status;
 
-    napi_create_function(env, NULL, 0, ina219_info_wrapper, NULL,
-                         &info_fn);
+    napi_create_function(env, NULL, 0, ina219_info_wrapper, NULL, &info_fn);
     napi_set_named_property(env, exports, "INA219Info", info_fn);
 
     // Create the basic_init function
-    status = napi_create_function(env, NULL, 0, basic_init, NULL,
-                                  &basic_init_fn);
+    status =
+        napi_create_function(env, NULL, 0, basic_init, NULL, &basic_init_fn);
+    status |= napi_set_named_property(env, exports, "basicInit", basic_init_fn);
+
+    // Create getShuntVoltage function
+    napi_value read_shunt_voltage_fn;
+    status |=
+        napi_create_function(env, NULL, 0, ina219_read_shunt_voltage_wrapper,
+                             NULL, &read_shunt_voltage_fn);
+    status |= napi_set_named_property(env, exports, "getShuntVoltage",
+                                      read_shunt_voltage_fn);
+
+    // Create getBusVoltage function
+    napi_value read_bus_voltage_fn;
+    status |=
+        napi_create_function(env, NULL, 0, ina219_read_bus_voltage_wrapper,
+                             NULL, &read_bus_voltage_fn);
+    status |= napi_set_named_property(env, exports, "getBusVoltage",
+                                      read_bus_voltage_fn);
+
+    // Create getCurrent function
+    napi_value read_current_fn;
+    status |= napi_create_function(env, NULL, 0, ina219_read_current_wrapper,
+                                   NULL, &read_current_fn);
+    status |=
+        napi_set_named_property(env, exports, "getCurrent", read_current_fn);
+
+    // Create getPower function
+    napi_value read_power_fn;
+    status |= napi_create_function(env, NULL, 0, ina219_read_power_wrapper,
+                                   NULL, &read_power_fn);
+    status |= napi_set_named_property(env, exports, "getPower", read_power_fn);
+
+    // Check if any of the NAPI calls failed
     if (status != napi_ok) {
         napi_throw_error(env, ERROR_CREATING_NAPI_VALUE,
-                         "Failed to create basic_init function");
+                         "Failed to initialize INA219 NODE extension");
         return NULL;
     }
-    napi_set_named_property(env, exports, "basicInit", basic_init_fn);
 
     return exports;
 }
