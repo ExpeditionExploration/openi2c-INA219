@@ -7,6 +7,7 @@ async function main() {
         // Initialize the INA219 sensor
         await ina219.basicInit(
             I2CAddress.ADDRESS_0,
+            "/dev/i2c-1",
             0.5,
             BusVoltageRange.VBUS_RANGE_32V,
             ADCMode.ADC_MODE_12_BIT_128_SAMPLES,

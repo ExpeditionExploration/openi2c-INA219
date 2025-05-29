@@ -43,6 +43,7 @@ napi_value ina219_info_wrapper(napi_env env, napi_callback_info info) {
  * Parameters when calling from JavaScript:
  * - `addr`: The I2C address of the INA219 sensor. Possible values are
  *           enumerated in `I2CAddress` enum.
+ * - `i2c_device`: The I2C device file path, e.g., `/dev/i2c-1`.
  * - `r`: The shunt resistor value in ohms.
  * - `voltage_range`: The bus voltage range, which is described in the
  *                    `BusVoltageRange` enum.
@@ -57,12 +58,12 @@ napi_value ina219_info_wrapper(napi_env env, napi_callback_info info) {
  * to interact with the INA219 sensor in subsequent function calls.
  */
 napi_value basic_init(napi_env env, napi_callback_info info) {
-    size_t argc = 6; // Two arguments expected
+    size_t argc = 7; // Two arguments expected
     napi_value argv[argc], this;
 
     napi_get_cb_info(env, info, &argc, argv, &this, NULL);
 
-    if (argc != 6) {
+    if (argc != 7) {
         napi_throw_error(env, WRONG_NUMBER_OF_ARGUMENTS,
                          "Check number of arguments for fn: basic_init(..)");
         return NULL;
@@ -71,22 +72,28 @@ napi_value basic_init(napi_env env, napi_callback_info info) {
     napi_status status;
     double r;
     ina219_address_t addr;
+    char i2c_device[32];
     ina219_bus_voltage_range_t voltage_range;
     ina219_adc_mode_t bus_adc_mode;
     ina219_adc_mode_t shunt_adc_mode;
     ina219_pga_t pga;
 
     status = napi_get_value_uint32(env, argv[0], &addr);
-    status |= napi_get_value_double(env, argv[1], &r);
-    status |= napi_get_value_uint32(env, argv[2], &voltage_range);
-    status |= napi_get_value_uint32(env, argv[3], &bus_adc_mode);
-    status |= napi_get_value_uint32(env, argv[4], &shunt_adc_mode);
-    status |= napi_get_value_uint32(env, argv[5], &pga);
+    status |= napi_get_value_string_utf8(env, argv[1], i2c_device,
+                                         sizeof(i2c_device), NULL);
+    status |= napi_get_value_double(env, argv[2], &r);
+    status |= napi_get_value_uint32(env, argv[3], &voltage_range);
+    status |= napi_get_value_uint32(env, argv[4], &bus_adc_mode);
+    status |= napi_get_value_uint32(env, argv[5], &shunt_adc_mode);
+    status |= napi_get_value_uint32(env, argv[6], &pga);
     if (status != napi_ok) {
         napi_throw_error(env, ERROR_CREATING_NAPI_VALUE,
                          "Failed to create NAPI value for arguments");
         return NULL;
     }
+
+    // Set the I2C bus
+    set_iic_bus(i2c_device);
 
     DRIVER_INA219_LINK_INIT(&ina219_iic_handle, ina219_handle_t);
     DRIVER_INA219_LINK_IIC_INIT(&ina219_iic_handle, ina219_interface_iic_init);
@@ -227,7 +234,7 @@ napi_value ina219_read_shunt_voltage_wrapper(napi_env env,
 }
 
 napi_value ina219_read_bus_voltage_wrapper(napi_env env,
-                                             napi_callback_info info) {
+                                           napi_callback_info info) {
     size_t argc = 0; // No arguments expected
     napi_get_cb_info(env, info, &argc, NULL, NULL, NULL);
 
@@ -257,8 +264,7 @@ napi_value ina219_read_bus_voltage_wrapper(napi_env env,
     return jsMV;
 }
 
-napi_value ina219_read_current_wrapper(napi_env env,
-                                              napi_callback_info info) {
+napi_value ina219_read_current_wrapper(napi_env env, napi_callback_info info) {
     size_t argc = 0; // No arguments expected
     napi_get_cb_info(env, info, &argc, NULL, NULL, NULL);
 
@@ -288,8 +294,7 @@ napi_value ina219_read_current_wrapper(napi_env env,
     return jsMA;
 }
 
-napi_value ina219_read_power_wrapper(napi_env env,
-                                              napi_callback_info info) {
+napi_value ina219_read_power_wrapper(napi_env env, napi_callback_info info) {
     size_t argc = 0; // No arguments expected
     napi_get_cb_info(env, info, &argc, NULL, NULL, NULL);
 

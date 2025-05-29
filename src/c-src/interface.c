@@ -44,8 +44,17 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#define IIC_BUS "/dev/i2c-1"
+char IIC_BUS[32];
 static int iic_fd = -1;
+
+void set_iic_bus(const char *iic_bus) {
+    if (iic_bus != NULL) {
+        snprintf(IIC_BUS, sizeof(IIC_BUS), "%s", iic_bus);
+    } else {
+        printf("Warning: I2C bus not set, using default /dev/i2c-1\n");
+        snprintf(IIC_BUS, sizeof(IIC_BUS), "/dev/i2c-1");
+    }
+}
 
 /**
  * @brief  interface iic bus init

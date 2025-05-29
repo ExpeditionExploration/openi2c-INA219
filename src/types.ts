@@ -153,8 +153,9 @@ export type INA219Info = {
 export type INA219 = {
     /// Basic initialization of the INA219 sensor.
     basicInit: (
-        addr: I2CAddress, r: number, voltageRange: BusVoltageRange,
-        busAdcMode: ADCMode, shuntAdcMode: ADCMode, pgaGain: PGAGain,
+        addr: I2CAddress, i2cDevice: string, r: number,
+        voltageRange: BusVoltageRange, busAdcMode: ADCMode,
+        shuntAdcMode: ADCMode, pgaGain: PGAGain,
     ) => Promise<void>,
 
     /// Return the shunt voltage in millivolts.

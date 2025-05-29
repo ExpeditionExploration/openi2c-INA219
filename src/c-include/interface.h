@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2015 - present LibDriver All rights reserved
- * 
+ *
  * The MIT License (MIT)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -19,7 +19,7 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE. 
+ * SOFTWARE.
  *
  * @file      driver_ina219_interface.h
  * @brief     driver ina219 interface header file
@@ -40,8 +40,16 @@
 #include "driver_ina219.h"
 
 #ifdef __cplusplus
-extern "C"{
+extern "C" {
 #endif
+
+/**
+ * @brief  set the iic bus
+ * @param[in] *iic_bus device file path
+ * @note   none
+ */
+void set_iic_bus(const char *iic_bus);
+extern char IIC_BUS[32];
 
 /**
  * @defgroup ina219_interface_driver ina219 interface driver function
@@ -79,7 +87,8 @@ uint8_t ina219_interface_iic_deinit(void);
  *             - 1 read failed
  * @note       none
  */
-uint8_t ina219_interface_iic_read(uint8_t addr, uint8_t reg, uint8_t *buf, uint16_t len);
+uint8_t ina219_interface_iic_read(uint8_t addr, uint8_t reg, uint8_t *buf,
+                                  uint16_t len);
 
 /**
  * @brief     interface iic bus write
@@ -92,7 +101,8 @@ uint8_t ina219_interface_iic_read(uint8_t addr, uint8_t reg, uint8_t *buf, uint1
  *            - 1 write failed
  * @note      none
  */
-uint8_t ina219_interface_iic_write(uint8_t addr, uint8_t reg, uint8_t *buf, uint16_t len);
+uint8_t ina219_interface_iic_write(uint8_t addr, uint8_t reg, uint8_t *buf,
+                                   uint16_t len);
 
 /**
  * @brief     interface delay ms
