@@ -96,7 +96,7 @@ export enum ADCMode {
 /**
  * INA219 mode enumeration.
  */
-export enum Mode {
+export enum INA219Mode {
     /** power down */
     POWER_DOWN = 0x0,
     /** shunt voltage triggered */
@@ -147,6 +147,13 @@ export type INA219 = {
         shuntAdcMode: ADCMode, pgaGain: PGAGain,
     ) => Promise<void>,
 
+    /// Shot initialization of the INA219 sensor.
+    shotInit: (
+        addr: I2CAddress, i2cDevice: string, r: number,
+        voltageRange: BusVoltageRange, busAdcMode: ADCMode,
+        shuntAdcMode: ADCMode, pgaGain: PGAGain,
+    ) => Promise<void>,
+
     /// Return the shunt voltage in millivolts.
     getShuntVoltage: () => Promise<number>,
 
@@ -164,6 +171,20 @@ export type INA219 = {
 
     /// Get the sensor information.
     getSensorInfo: () => Promise<INA219Info>,
+
+    /// Set the mode of the INA219 sensor.
+    setMode: (mode: INA219Mode) => Promise<void>,
 }
 
 
+export type Config = {
+    addr: I2CAddress,
+    i2cDevice: string,
+    r: number,
+    voltageRange: BusVoltageRange,
+    busAdcMode: ADCMode,
+    shuntAdcMode: ADCMode,
+    pgaGain: PGAGain,
+    mode: INA219Mode,
+    continuous: boolean,
+}

@@ -53,4 +53,33 @@ napi_value ina219_read_power_wrapper(napi_env env, napi_callback_info info);
  */
 napi_value ina219_soft_reset_wrapper(napi_env env, napi_callback_info info);
 
+/**
+ * Initialize the INA219 sensor for shot mode.
+ *
+ * Parameters when calling from JavaScript:
+ * - `addr`: The I2C address of the INA219 sensor. Possible values are
+ *           enumerated in `I2CAddress` enum.
+ * - `i2c_device`: The I2C device file path, e.g., `/dev/i2c-1`.
+ * - `r`: The shunt resistor value in ohms.
+ * - `voltage_range`: The bus voltage range, which is described in the
+ *                    `BusVoltageRange` enum.
+ * - `bus_voltage_adc_mode`: The ADC mode for bus voltage, described in the
+ *                           `ADCMode` enum.
+ * - `shunt_voltage_adc_mode`: The ADC mode for shunt voltage, described in the
+ *                             `ADCMode` enum.
+ * - `pga`: The programmable gain amplifier setting, described in the
+ *          `PGAGain` enum.
+ *
+ * Returns a JavaScript object containing the INA219 handle, which can be used
+ * to interact with the INA219 sensor in subsequent function calls.
+ */
+napi_value shot_init(napi_env env, napi_callback_info info);
+
+/**
+ * Set INA219 mode.
+ *
+ * Possible modes are enumerated in `INA219Mode` enum.
+ */
+napi_value ina219_set_mode_wrapper(napi_env env, napi_callback_info info);
+
 #endif

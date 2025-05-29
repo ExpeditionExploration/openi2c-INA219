@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "driver_ina219.h"
 #include "errors.h"
@@ -38,7 +39,7 @@ napi_value ina219_info_wrapper(napi_env env, napi_callback_info info) {
 }
 
 /**
- * Initialize the INA219 sensor
+ * Initialize the INA219 sensor for continuous mode.
  *
  * Parameters when calling from JavaScript:
  * - `addr`: The I2C address of the INA219 sensor. Possible values are
@@ -355,4 +356,210 @@ napi_value ina219_soft_reset_wrapper(napi_env env, napi_callback_info info) {
     }
 
     return NULL; // No return value needed for soft reset
+}
+
+/**
+ * Initialize the INA219 sensor for shot mode.
+ *
+ * Parameters when calling from JavaScript:
+ * - `addr`: The I2C address of the INA219 sensor. Possible values are
+ *           enumerated in `I2CAddress` enum.
+ * - `i2c_device`: The I2C device file path, e.g., `/dev/i2c-1`.
+ * - `r`: The shunt resistor value in ohms.
+ * - `voltage_range`: The bus voltage range, which is described in the
+ *                    `BusVoltageRange` enum.
+ * - `bus_voltage_adc_mode`: The ADC mode for bus voltage, described in the
+ *                           `ADCMode` enum.
+ * - `shunt_voltage_adc_mode`: The ADC mode for shunt voltage, described in the
+ *                             `ADCMode` enum.
+ * - `pga`: The programmable gain amplifier setting, described in the
+ *          `PGAGain` enum.
+ *
+ * Returns a JavaScript object containing the INA219 handle, which can be used
+ * to interact with the INA219 sensor in subsequent function calls.
+ */
+napi_value shot_init(napi_env env, napi_callback_info info) {
+    uint8_t res;
+    uint16_t calibration;
+
+    size_t argc = 7; // Two arguments expected
+    napi_value argv[argc], this;
+
+    napi_get_cb_info(env, info, &argc, argv, &this, NULL);
+
+    if (argc != 7) {
+        napi_throw_error(env, WRONG_NUMBER_OF_ARGUMENTS,
+                         "Check number of arguments for fn: basic_init(..)");
+        return NULL;
+    }
+
+    napi_status status;
+    double r;
+    ina219_address_t addr;
+    char i2c_device[32];
+    ina219_bus_voltage_range_t voltage_range;
+    ina219_adc_mode_t bus_adc_mode;
+    ina219_adc_mode_t shunt_adc_mode;
+    ina219_pga_t pga;
+
+    status = napi_get_value_uint32(env, argv[0], &addr);
+    status |= napi_get_value_string_utf8(env, argv[1], i2c_device,
+                                         sizeof(i2c_device), NULL);
+    status |= napi_get_value_double(env, argv[2], &r);
+    status |= napi_get_value_uint32(env, argv[3], &voltage_range);
+    status |= napi_get_value_uint32(env, argv[4], &bus_adc_mode);
+    status |= napi_get_value_uint32(env, argv[5], &shunt_adc_mode);
+    status |= napi_get_value_uint32(env, argv[6], &pga);
+    if (status != napi_ok) {
+        napi_throw_error(env, ERROR_CREATING_NAPI_VALUE,
+                         "Failed to create NAPI value for arguments");
+        return NULL;
+    }
+
+    // Set the I2C bus
+    set_iic_bus(i2c_device);
+
+    /* link interface function */
+    DRIVER_INA219_LINK_INIT(&ina219_iic_handle, ina219_handle_t);
+    DRIVER_INA219_LINK_IIC_INIT(&ina219_iic_handle, ina219_interface_iic_init);
+    DRIVER_INA219_LINK_IIC_DEINIT(&ina219_iic_handle,
+                                  ina219_interface_iic_deinit);
+    DRIVER_INA219_LINK_IIC_READ(&ina219_iic_handle, ina219_interface_iic_read);
+    DRIVER_INA219_LINK_IIC_WRITE(&ina219_iic_handle,
+                                 ina219_interface_iic_write);
+    DRIVER_INA219_LINK_DELAY_MS(&ina219_iic_handle, ina219_interface_delay_ms);
+    DRIVER_INA219_LINK_DEBUG_PRINT(&ina219_iic_handle,
+                                   ina219_interface_debug_print);
+
+    /* set addr pin */
+    res = ina219_set_addr_pin(&ina219_iic_handle, addr);
+    if (res != 0) {
+        ina219_interface_debug_print("ina219: set addr pin failed.\n");
+        napi_throw_error(env, INIT_ERROR, "Failed to set i2c address");
+        return NULL;
+    }
+
+    /* set the r */
+    res = ina219_set_resistance(&ina219_iic_handle, r);
+    if (res != 0) {
+        ina219_interface_debug_print("ina219: set resistance failed.\n");
+        napi_throw_error(env, INIT_ERROR, "Failed to set resistance value");
+        return NULL;
+    }
+
+    /* init */
+    res = ina219_init(&ina219_iic_handle);
+    if (res != 0) {
+        ina219_interface_debug_print("ina219: init failed.\n");
+        napi_throw_error(env, INIT_ERROR, "Failed to initialize INA219");
+        return NULL;
+    }
+
+    /* set bus voltage range */
+    res = ina219_set_bus_voltage_range(&ina219_iic_handle, voltage_range);
+    if (res != 0) {
+        ina219_interface_debug_print("ina219: set bus voltage range failed.\n");
+        (void)ina219_deinit(&ina219_iic_handle);
+        napi_throw_error(env, INIT_ERROR, "Failed to set bus voltage range");
+        return NULL;
+    }
+
+    /* set bus voltage adc mode */
+    res = ina219_set_bus_voltage_adc_mode(&ina219_iic_handle, bus_adc_mode);
+    if (res != 0) {
+        ina219_interface_debug_print(
+            "ina219: set bus voltage adc mode failed.\n");
+        (void)ina219_deinit(&ina219_iic_handle);
+        napi_throw_error(env, INIT_ERROR, "Failed to set bus voltage ADC mode");
+        return NULL;
+    }
+
+    /* set shunt voltage adc mode */
+    res = ina219_set_shunt_voltage_adc_mode(&ina219_iic_handle, shunt_adc_mode);
+    if (res != 0) {
+        ina219_interface_debug_print(
+            "ina219: set shunt voltage adc mode failed.\n");
+        (void)ina219_deinit(&ina219_iic_handle);
+        napi_throw_error(env, INIT_ERROR,
+                         "Failed to set shunt voltage ADC mode");
+        return NULL;
+    }
+
+    /* set pga */
+    res = ina219_set_pga(&ina219_iic_handle, pga);
+    if (res != 0) {
+        ina219_interface_debug_print("ina219: set pga failed.\n");
+        (void)ina219_deinit(&ina219_iic_handle);
+        napi_throw_error(env, INIT_ERROR, "Failed to set PGA");
+        return NULL;
+    }
+
+    /* calculate calibration */
+    res = ina219_calculate_calibration(&ina219_iic_handle,
+                                       (uint16_t *)&calibration);
+    if (res != 0) {
+        ina219_interface_debug_print("ina219: calculate calibration failed.\n");
+        (void)ina219_deinit(&ina219_iic_handle);
+        napi_throw_error(env, INIT_ERROR, "Failed to calculate calibration");
+        return NULL;
+    }
+
+    /* set calibration */
+    res = ina219_set_calibration(&ina219_iic_handle, calibration);
+    if (res != 0) {
+        ina219_interface_debug_print("ina219: set calibration failed.\n");
+        (void)ina219_deinit(&ina219_iic_handle);
+        napi_throw_error(env, INIT_ERROR, "Failed to set calibration");
+        return NULL;
+    }
+
+    return NULL;
+}
+
+/**
+ * Set INA219 mode.
+ *
+ * Possible modes are enumerated in `INA219Mode` enum.
+ *
+ * Parameters when calling from JavaScript:
+ * - `mode`: The mode to set, which is described in the `INA219Mode` enum.
+ *
+ * Returns nothing. Throws on error.
+ *
+ * JS errors that can be thrown:
+ * - `INIT_ERROR`: If the INA219 handle is not initialized or if setting the
+ *                 mode fails.
+ * - `ERROR_CREATING_NAPI_VALUE`: If there is an error creating the NAPI value
+ *                                for the mode.
+ * - `WRONG_NUMBER_OF_ARGUMENTS`: If the number of arguments passed is not
+ *                                correct.
+ */
+napi_value ina219_set_mode_wrapper(napi_env env, napi_callback_info info) {
+    size_t argc = 1; // One argument expected
+    napi_value argv[argc], this;
+
+    napi_get_cb_info(env, info, &argc, argv, &this, NULL);
+
+    if (argc != 1) {
+        napi_throw_error(
+            env, WRONG_NUMBER_OF_ARGUMENTS,
+            "Check number of arguments for fn: ina219_set_mode_wrapper(..)");
+        return NULL;
+    }
+
+    uint32_t mode;
+    napi_status status = napi_get_value_uint32(env, argv[0], &mode);
+    if (status != napi_ok) {
+        napi_throw_error(env, ERROR_CREATING_NAPI_VALUE,
+                         "Failed to create NAPI value for mode");
+        return NULL;
+    }
+
+    uint8_t res = ina219_set_mode(&ina219_iic_handle, (ina219_mode_t)mode);
+    if (res != 0) {
+        napi_throw_error(env, INIT_ERROR, "Failed to set INA219 mode");
+        return NULL;
+    }
+
+    return NULL;
 }

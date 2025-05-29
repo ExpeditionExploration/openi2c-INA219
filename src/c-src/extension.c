@@ -51,6 +51,18 @@ napi_value Init(napi_env env, napi_value exports) {
                                    NULL, &soft_reset_fn);
     status |= napi_set_named_property(env, exports, "softReset", soft_reset_fn);
 
+    // Create shotInit function
+    napi_value shot_init_fn;
+    status |=
+        napi_create_function(env, NULL, 0, shot_init, NULL, &shot_init_fn);
+    status |= napi_set_named_property(env, exports, "shotInit", shot_init_fn);
+
+    // Create ina219_set_mode_wrapper function
+    napi_value set_mode_fn;
+    status |= napi_create_function(env, NULL, 0, ina219_set_mode_wrapper, NULL,
+                                   &set_mode_fn);
+    status |= napi_set_named_property(env, exports, "setMode", set_mode_fn);
+
     // Check if any of the NAPI calls failed
     if (status != napi_ok) {
         napi_throw_error(env, ERROR_CREATING_NAPI_VALUE,

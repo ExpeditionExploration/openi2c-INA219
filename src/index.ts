@@ -5,13 +5,19 @@ import {
     PGAGain,
     ADCMode,
     BusVoltageRange,
-    Mode,
+    INA219Mode,
     INA219Info,
+    Config,
 } from "./types"
 import { type INA219 } from "./types";
+import * as utils from './utils';
 
-const ina219: INA219 = binding('ina219_native');
+const bindings: INA219 = binding('ina219_native');
+
+// Bindins
 export {
+    bindings,
+    utils,
     I2CAddress, PGAGain, ADCMode, BusVoltageRange, 
-    Mode, INA219Info, ina219
+    INA219Mode, INA219Info
 }

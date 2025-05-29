@@ -1,11 +1,13 @@
 
-import { ADCMode, BusVoltageRange, I2CAddress, ina219, PGAGain } from ".";
+import { ADCMode, BusVoltageRange, I2CAddress, bindings, PGAGain } from ".";
 import { sleep } from "./utils";
 
 async function main() {
     try {
         // Initialize the INA219 sensor
-        await ina219.basicInit(
+        // The interface has shotInit for triggered measurements
+        // and basicInit for continuous measurements.
+        await bindings.basicInit(
             I2CAddress.ADDRESS_0,
             "/dev/i2c-1",
             0.1,
@@ -16,7 +18,7 @@ async function main() {
         )
         console.log("INA219 initialized successfully.");
         console.log("Sensor information:");
-        const info = await ina219.getSensorInfo();
+        const info = await bindings.getSensorInfo();
         console.log(`chipName: ${info.chipName}`);
         console.log(`manufacturerName: ${info.manufacturerName}`);
         console.log(`interface: ${info.interface}`);
@@ -28,9 +30,9 @@ async function main() {
         console.log(`driverVersion: ${info.driverVersion}`);
         console.log("-------------------------------");
         console.log("Reset and re-initialize the INA219 sensor.");
-        await ina219.softReset();
+        await bindings.softReset();
         await sleep(20); // Wait for 20 ms after reset
-        await ina219.basicInit(
+        await bindings.basicInit(
             I2CAddress.ADDRESS_0,
             "/dev/i2c-1",
             0.1,
@@ -43,13 +45,13 @@ async function main() {
         console.log("-------------------------------");
 
         while (true) {
-            const shuntVoltage = await ina219.getShuntVoltage();
-            const busVoltage = await ina219.getBusVoltage();
-            const current = await ina219.getCurrent();
+            const shuntVoltage = await bindings.getShuntVoltage();
+            const busVoltage = await bindings.getBusVoltage();
+            const current = await bindings.getCurrent();
             console.log(`Shunt Voltage: ${shuntVoltage} mV`);
             console.log(`Bus Voltage: ${busVoltage} mV`);
             console.log(`Current: ${current} mA`);
-            console.log(`Power: ${ina219.getPower()} mW`);
+            console.log(`Power: ${bindings.getPower()} mW`);
             await sleep(1000); // Wait for 1 second before the next reading
             console.log("-------------------------------");
         }
