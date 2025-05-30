@@ -14,7 +14,7 @@ napi_value Init(napi_env env, napi_value exports) {
     // Create the basic_init function
     status =
         napi_create_function(env, NULL, 0, basic_init, NULL, &basic_init_fn);
-    status |= napi_set_named_property(env, exports, "basicInit", basic_init_fn);
+    status |= napi_set_named_property(env, exports, "init", basic_init_fn);
 
     // Create getShuntVoltage function
     napi_value read_shunt_voltage_fn;
@@ -50,12 +50,6 @@ napi_value Init(napi_env env, napi_value exports) {
     status |= napi_create_function(env, NULL, 0, ina219_soft_reset_wrapper,
                                    NULL, &soft_reset_fn);
     status |= napi_set_named_property(env, exports, "softReset", soft_reset_fn);
-
-    // Create shotInit function
-    napi_value shot_init_fn;
-    status |=
-        napi_create_function(env, NULL, 0, shot_init, NULL, &shot_init_fn);
-    status |= napi_set_named_property(env, exports, "shotInit", shot_init_fn);
 
     // Create ina219_set_mode_wrapper function
     napi_value set_mode_fn;
