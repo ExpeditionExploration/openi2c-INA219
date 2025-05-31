@@ -1,13 +1,12 @@
 {
   "name": "ina219",
   "version": "0.0.1",
-  "description": "INA219 current sensor driver",
+  "description": "INA219 current sensor driver bindings",
   "main": "index.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "test": "jest --runInBand",
     "configure": "node-gyp configure",
     "build": "node-gyp build && tsc",
     "rebuild": "node-gyp rebuild && tsc",
@@ -15,7 +14,7 @@
     "bear-rebuild": "bear -- node-gyp rebuild && tsc"
   },
   "keywords": [
-    "INA219"
+    "INA219", "OpenI2C"
   ],
   "author": "",
   "license": "MIT",
