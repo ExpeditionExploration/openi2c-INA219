@@ -114,13 +114,13 @@ napi_value basic_init(napi_env env, napi_callback_info info) {
         hasMode;
     status = napi_has_named_property(env, cfg, "pgaGain", &hasPgaGain);
     status |=
-        napi_has_named_property(env, cfg, "hasBusAdcMode", &hasBusAdcMode);
+        napi_has_named_property(env, cfg, "busAdcMode", &hasBusAdcMode);
     status |=
-        napi_has_named_property(env, cfg, "hasShuntAdcMode", &hasShuntAdcMode);
-    status |= napi_has_named_property(env, cfg, "hasR", &hasR);
+        napi_has_named_property(env, cfg, "shuntAdcMode", &hasShuntAdcMode);
+    status |= napi_has_named_property(env, cfg, "r", &hasR);
     status |=
-        napi_has_named_property(env, cfg, "hasVoltageRange", &hasVoltageRange);
-    status |= napi_has_named_property(env, cfg, "hasMode", &hasMode);
+        napi_has_named_property(env, cfg, "voltageRange", &hasVoltageRange);
+    status |= napi_has_named_property(env, cfg, "mode", &hasMode);
 
     // Fetch all named properties from cfg object
     status |= napi_get_named_property(env, cfg, "pgaGain", &jPgaGain);

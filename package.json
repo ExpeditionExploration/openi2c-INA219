@@ -7,6 +7,7 @@
     "test": "tests"
   },
   "scripts": {
+    "debug-build": "node-gyp rebuild --debug && tsc",
     "configure": "node-gyp configure",
     "build": "node-gyp build && tsc",
     "rebuild": "node-gyp rebuild && tsc",
