@@ -146,18 +146,24 @@ uint8_t ina219_interface_iic_write(uint8_t addr, uint8_t reg, uint8_t *buf,
                                    uint16_t len) {
     struct i2c_rdwr_ioctl_data i2c_rdwr_data;
     struct i2c_msg msgs[1];
-
+    uint8_t buf_send[len + 1];
+    
     /* clear ioctl data */
     memset(&i2c_rdwr_data, 0, sizeof(struct i2c_rdwr_ioctl_data));
-
+    
     /* clear msgs data */
     memset(msgs, 0, sizeof(struct i2c_msg) * 1);
-
+    
+    /* clear sent buf */
+    memset(buf_send, 0, sizeof(uint8_t) * (len + 1));
+    
     /* set the param */
     msgs[0].addr = addr >> 1;
     msgs[0].flags = 0;
-    msgs[0].buf = buf;
-    msgs[0].len = len;
+    buf_send[0] = reg;
+    memcpy(&buf_send[1], buf, len);
+    msgs[0].buf = buf_send;
+    msgs[0].len = len + 1;
     i2c_rdwr_data.msgs = msgs;
     i2c_rdwr_data.nmsgs = 1;
 
