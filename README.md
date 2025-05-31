@@ -67,4 +67,6 @@ After building you can run `npx ts-node src/example.ts` to run the example file.
 
 ## Tested boards
 
-This has been tested only on *Raspberry Pi 4B* using *Node v22.14.0*.
+This has been tested on:
+- *Raspberry Pi 4B* using *Node v22.14.0*
+- *Orange Pi CM5* using *Node v20.19.1*
