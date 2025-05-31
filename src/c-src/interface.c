@@ -189,4 +189,4 @@ void ina219_interface_delay_ms(uint32_t ms) { usleep(ms * 1000); }
  * @param[in] fmt format data
  * @note      none
  */
-void ina219_interface_debug_print(const char *const fmt, ...) {}
+void(*ina219_interface_debug_print)(const char* const, ...) = (void(*)(const char* const, ...))&printf;

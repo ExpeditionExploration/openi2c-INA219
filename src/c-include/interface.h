@@ -116,7 +116,7 @@ void ina219_interface_delay_ms(uint32_t ms);
  * @param[in] fmt format data
  * @note      none
  */
-void ina219_interface_debug_print(const char *const fmt, ...);
+extern void(*ina219_interface_debug_print)(const char* const, ...);
 
 /**
  * @}
