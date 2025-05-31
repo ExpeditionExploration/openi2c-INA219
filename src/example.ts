@@ -7,6 +7,7 @@ async function main() {
     try {
         const cfg: Config = {
             addr: I2CAddress.ADDRESS_0,
+            // Change this to your I2C bus.
             i2cDevice: "/dev/i2c-1",
             // Rest of the fields are optional. Below are the defaults.
             pgaGain: PGAGain.GAIN_1_DIV_8,

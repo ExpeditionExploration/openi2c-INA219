@@ -1,8 +1,10 @@
-# INA219 driver
+# INA219 driver NodeJS-interface
 
 Datasheet: http://www.adafruit.com/datasheets/ina219.pdf
 
-**You probably shouldn't use these bindings quite yet. :D**
+This standalone interface provides I2C driver bindings for
+[OpenI2C](https://github.com/ExpeditionExploration/openi2c/).
+
 
 ## About
 
@@ -17,75 +19,28 @@ are no pre-compiled binaries. Installing by installing OpenI2C should get you
 going, but if you want this driver only, see *Building* for how to build the
 binary for Node.
 
+## Prerequisites
+
+I2C bus needs to be enabled for your Linux, in case of Raspbian, using
+`sudo raspi-config`. Also, working C toolchain is needed. In
+Raspbian this can be installed by `sudo apt install build-essential`.
+
 
 ## Usage
 
-```ts
-import { ADCMode, BusVoltageRange, I2CAddress, bindings, PGAGain } from ".";
-import { Config, INA219Mode } from "./types";
-import { sleep } from "./utils";
-
-async function main() {
-    try {
-        const cfg: Config = {
-            addr: I2CAddress.ADDRESS_0,
-            i2cDevice: "/dev/i2c-1",
-            // Rest of the fields are optional. Below are the defaults.
-            pgaGain: PGAGain.GAIN_1_DIV_8,
-            busAdcMode: ADCMode.ADC_MODE_12_BIT_128_SAMPLES,
-            shuntAdcMode: ADCMode.ADC_MODE_12_BIT_128_SAMPLES,
-            r: 0.1,
-            voltageRange: BusVoltageRange.VBUS_RANGE_32V,
-            mode: INA219Mode.SHUNT_BUS_VOLTAGE_CONTINUOUS
-        }
-        // Initialize the INA219 sensor
-        // The interface has shotInit for triggered measurements
-        // and basicInit for continuous measurements.
-        await bindings.init(cfg)
-        console.log("INA219 initialized successfully.");
-        console.log("Sensor information:");
-        const info = await bindings.getSensorInfo();
-        console.log(`chipName: ${info.chipName}`);
-        console.log(`manufacturerName: ${info.manufacturerName}`);
-        console.log(`interface: ${info.interface}`);
-        console.log(`supplyVoltageMinV: ${info.supplyVoltageMinV} V`);
-        console.log(`supplyVoltageMaxV: ${info.supplyVoltageMaxV} V`);
-        console.log(`maxCurrentMilliA: ${info.maxCurrentMilliA} mA`);
-        console.log(`temperatureMin: ${info.temperatureMin} °C`);
-        console.log(`temperatureMax: ${info.temperatureMax} °C`);
-        console.log(`driverVersion: ${info.driverVersion}`);
-        console.log("-------------------------------");
-        console.log("Reset and re-initialize the INA219 sensor.");
-
-        while (true) {
-            const shuntVoltage = await bindings.getShuntVoltage();
-            const busVoltage = await bindings.getBusVoltage();
-            const current = await bindings.getCurrent();
-            console.log(`Shunt Voltage: ${shuntVoltage} mV`);
-            console.log(`Bus Voltage: ${busVoltage} mV`);
-            console.log(`Current: ${current} mA`);
-            console.log(`Power: ${bindings.getPower()} mW`);
-            await sleep(1000); // Wait for 1 second before the next reading
-            console.log("-------------------------------");
-        }
-
-    } catch (error) {
-        console.error("Error initializing INA219:", error);
-    }
-}
-
-main()
-```
-
-
-## Running tests
-
-tbd
+Check out the [example.ts](./src/example.ts) file.
 
 
 ## Building
 
 For building you need a C toolchain. I've only built this using GCC.
+
+To build you need to install the dependencies. Write the following in the
+repository root:
+
+```bash
+npm install
+```
 
 Building the wrapper module is done by using one of the npm build scripts
 defined in the `package.json` file:
@@ -94,21 +49,22 @@ defined in the `package.json` file:
 npm run build
 ```
 
-or
+or optionally
 
 ```bash
 npm run bear-build
 ```
 
-[Bear](https://github.com/rizsotto/Bear) is a tool which generates the
-`compile_commands.json`-file. I didn't get clangd completions to work without
-it in this node-gyp project. If you need to install it, your distro's package
-manager likely has it.
+[Bear](https://github.com/rizsotto/Bear) generates `compile_commands.json`
+for clangd-based autocompletions in this node-gyp project. You can install it
+by `sudo apt install bear`.
 
-Node headers need to be available in one of the system include directories,
-such as `/usr/local/include/node`.
+
+## Running example
+
+After building you can run `npx ts-node src/example.ts` to run the example file.
 
 
 ## Tested boards
 
-So far I've only tried this on *Raspberry Pi 4B* using *Node v22.14.0*.
+This has been tested only on *Raspberry Pi 4B* using *Node v22.14.0*.
