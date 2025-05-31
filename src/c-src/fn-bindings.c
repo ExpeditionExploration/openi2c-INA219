@@ -251,8 +251,13 @@ napi_value basic_init(napi_env env, napi_callback_info info) {
     }
 
     /* calculate calibration */
-    uint16_t calibration;
+    uint16_t calibration = 0;
+    res = ina219_get_calibration(&ina219_iic_handle, &calibration);
+    printf("Old (read, %d): %d.\n", res, calibration);
+    ina219_iic_handle.delay_ms(1000);
     res = ina219_calculate_calibration(&ina219_iic_handle, &calibration);
+    printf("New (calculated, %d): %d.\n", res, calibration);
+    ina219_iic_handle.delay_ms(1000);
     if (res != 0) {
         ina219_interface_debug_print("ina219: calculate calibration failed.\n");
         ina219_deinit(&ina219_iic_handle);
@@ -262,12 +267,17 @@ napi_value basic_init(napi_env env, napi_callback_info info) {
 
     /* set calibration */
     res = ina219_set_calibration(&ina219_iic_handle, calibration);
+    printf("New (write, %d): %d.\n", res, calibration);
+    ina219_iic_handle.delay_ms(1000);
     if (res != 0) {
         ina219_interface_debug_print("ina219: set calibration failed.\n");
         ina219_deinit(&ina219_iic_handle);
         napi_throw_error(env, INIT_ERROR, "Failed to set calibration");
         return NULL;
     }
+    res = ina219_get_calibration(&ina219_iic_handle, &calibration);
+    printf("New (read, %d): %d.\n", res, calibration);
+    ina219_iic_handle.delay_ms(1000);
 
     return NULL;
 }
